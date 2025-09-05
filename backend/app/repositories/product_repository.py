@@ -17,7 +17,12 @@ class ProductsRepository:
     def get_all_products(self):
         return self.db.query(Product).all()
     
-    def update_product(self, product: Product):
+    def update_product(self, product_id: int, product_update):
+        product = self.get_product(product_id)
+        if not product:
+            return None
+        for field, value in product_update.dict(exclude_unset=True).items():
+            setattr(product, field, value)
         self.db.commit()
         self.db.refresh(product)
         return product

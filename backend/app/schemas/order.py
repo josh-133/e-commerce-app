@@ -9,6 +9,9 @@ class OrderBase(BaseModel):
 class OrderCreate(OrderBase):
     pass
 
+class OrderUpdate(OrderBase):
+    pass
+
 class OrderResponse(OrderBase):
     id: int
 
