@@ -8,8 +8,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 auth_service = AuthService()
 
 @router.post("/register")
-async def register(email: str, password: str, db: Session = Depends(get_db)):
-    return await auth_service.register(db, email, password)
+async def register(request: UserRegister, db: Session = Depends(get_db)):
+    return await auth_service.register(db, request.email, request.password)
 
 @router.post("/login")
 async def login(request: UserLogin, db: Session = Depends(get_db)):
