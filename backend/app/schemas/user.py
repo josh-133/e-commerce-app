@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from app.models.role import Role
+
 
 class UserRegister(BaseModel):
     email: str
@@ -11,6 +13,7 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: str
+    role: Role
 
     class Config:
         orm_mode = True
