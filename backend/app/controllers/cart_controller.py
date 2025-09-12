@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.cart import CartResponse, CartCreate, CartItem as CartItemSchema
@@ -15,7 +14,7 @@ def create_cart(cart_create: CartCreate, db: Session = Depends(get_db)):
     cart = repo.create_cart(user_id=cart_create.user_id)
     return cart
 
-@router.get("/", response_model=List[CartResponse])
+@router.get("/", response_model=list[CartResponse])
 def get_cart(db: Session = Depends(get_db)):
     repo = CartsRepository(db)
     carts = repo.get_all_carts()
