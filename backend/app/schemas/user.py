@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from app.models.role import Role
-
+from app.enums import Role
 
 class UserRegister(BaseModel):
     email: EmailStr
