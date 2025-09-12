@@ -12,6 +12,7 @@ aiokafka==0.11.0          # Async Kafka client
 # --- Pydantic / Validation ---
 pydantic==2.9.2           # Data validation & schemas
 pydantic-settings==2.5.2  # Environment config
+pydantic[email]
 
 # --- Auth / Security ---
 python-jose[cryptography]==3.3.0  # JWT auth
