@@ -1,0 +1,27 @@
+# --- Web Framework ---
+fastapi==0.115.0          # Main web framework
+uvicorn[standard]==0.30.3 # ASGI server
+
+# --- Database ---
+sqlalchemy==2.0.32        # ORM (if using SQL-based DB)
+databases[postgresql]==0.9.0  # Async DB layer (if Postgres)
+
+# --- Kafka ---
+aiokafka==0.11.0          # Async Kafka client
+
+# --- Pydantic / Validation ---
+pydantic==2.9.2           # Data validation & schemas
+pydantic-settings==2.5.2  # Environment config
+pydantic[email]
+
+# --- Auth / Security ---
+python-jose[cryptography]==3.3.0  # JWT auth
+passlib[bcrypt]==1.7.4            # Password hashing
+
+# --- Utilities ---
+python-dotenv==1.0.1      # For .env config
+requests==2.32.3          # For calling external APIs
+
+# --- Testing ---
+pytest==8.3.2
+httpx==0.27.0             # Test client for FastAPI
