@@ -4,6 +4,8 @@ class ProductBase(BaseModel):
     name: str
     description: str | None = None
     price: float
+    image_url: str
+    category: str
     stock: int
 
 class ProductCreate(ProductBase):

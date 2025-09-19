@@ -1,21 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { ProductsService } from '../../services/products.service';
+import { Product } from '../../models/products.model';
 
 @Component({
   selector: 'app-products',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, MatCardModule, MatButtonModule],
   templateUrl: './products.component.html',
-  styleUrl: './products.component.scss'
+  styleUrls: ['./products.component.scss']
 })
-export class ProductsComponent {
-  products: any[] = [];
+export class ProductsComponent implements OnInit {
+  products: Product[] = [];
 
   constructor(private productsService: ProductsService) {}
 
-  // ngOnInit() {
-  //   this.productsService.getProducts().subscribe((res: any) {
-  //     this.products = res;
-  //   })
-  // }
-
+  ngOnInit() {
+    this.productsService.getProducts().subscribe({
+      next: (res: Product[]) => {
+        this.products = res;
+      },
+      error: (err) => console.error('Error fetching products:', err)
+    });
+  }
 }
