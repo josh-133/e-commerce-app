@@ -39,6 +39,15 @@ def get_cart(cart_id: int, db: Session = Depends(get_db), current_user: User = D
         raise HTTPException(status_code=403, detail="Not authorized")
     return cart
 
+@router.get("/current", response_model=CartResponse)
+def get_current_cart(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    repo = CartsRepository(db)
+    cart = repo.get_by_user_id(current_user.id)
+    if not cart:
+        # optionally create a cart if one doesn't exist
+        cart = repo.create_cart(current_user.id)
+    return cart
+
 # Add item to cart
 @router.post("/{cart_id}/items", response_model=CartItemSchema)
 def add_item_to_cart(cart_id: int, item: CartItemSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

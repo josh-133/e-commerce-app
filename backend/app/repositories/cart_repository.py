@@ -22,6 +22,9 @@ class CartsRepository:
     def get_cart(self, cart_id: int) -> Cart | None:
         return self.db.query(Cart).filter(Cart.id == cart_id).first()
     
+    def get_by_user_id(self, user_id: int) -> Cart | None:
+        return self.db.query(Cart).filter(Cart.user_id == user_id).first()
+    
     # Add item to cart
     def add_item(self, cart: Cart, item: CartItemSchema) -> CartItem:
         cart_item = CartItem(
