@@ -1,12 +1,23 @@
-<div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; padding: 1rem;">
-    <mat-card *ngFor="let product of products" style="width: 250px;">
-      <mat-card-title>{{ product.name }}</mat-card-title>
-      <mat-card-content>
-        <p>{{ product.description }}</p>
-        <p><strong>Price:</strong> ${{ product.price }}</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <button mat-raised-button color="primary">Add to Cart</button>
-      </mat-card-actions>
-    </mat-card>
+<div class="products-page">
+    <h1 class="products-title">Our Products</h1>
+    <p class="products-subtitle">
+        Browse our latest products and find what you love. Free shipping on orders over $50!
+    </p>
+    <div class="products-container">
+
+        <mat-card *ngFor="let product of products" class="product-card">
+        <img mat-card-image [src]="product.image_url" alt="{{ product.name }}">
+        <mat-card-header>
+            <mat-card-title>{{ product.name }}</mat-card-title>
+            <mat-card-subtitle>{{ product.category }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <p class="description">{{ product.description }}</p>
+            <p class="price">${{ product.price }}</p>
+        </mat-card-content>
+        <mat-card-actions>
+            <button mat-raised-button color="primary" class="add-to-cart-btn">Add to Cart</button>
+        </mat-card-actions>
+        </mat-card>
+    </div>
 </div>

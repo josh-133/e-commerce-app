@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -26,7 +27,7 @@ import { CommonModule } from '@angular/common';
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
 
-  constructor(private fb: FormBuilder, private authService: AuthService) {}
+  constructor(private fb: FormBuilder, private authService: AuthService, private readonly router: Router) {}
 
   ngOnInit() {
     this.registerForm = this.fb.group({
@@ -50,7 +51,7 @@ export class RegisterComponent implements OnInit {
     this.authService.register(email, password).subscribe({
       next: (res) => {
         console.log('Registration successful:', res);
-        // Optionally redirect to login
+        this.router.navigate(['/products']);
       },
       error: (err) => console.error('Registration error:', err)
     });
