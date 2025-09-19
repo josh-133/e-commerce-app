@@ -8,6 +8,6 @@ class Product(Base):
     name = Column(String, unique=True, index=True, nullable=True)
     description = Column(String, nullable=False)
     price = Column(Float, nullable=False)
-    image_url = Column(String, unique=True)
+    image_url = Column(String)
     category = Column(String, nullable=False)
     stock = Column(Integer, default=0)
