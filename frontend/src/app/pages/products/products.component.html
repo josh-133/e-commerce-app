@@ -1,0 +1,12 @@
+<div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; padding: 1rem;">
+    <mat-card *ngFor="let product of products" style="width: 250px;">
+      <mat-card-title>{{ product.name }}</mat-card-title>
+      <mat-card-content>
+        <p>{{ product.description }}</p>
+        <p><strong>Price:</strong> ${{ product.price }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary">Add to Cart</button>
+      </mat-card-actions>
+    </mat-card>
+</div>
