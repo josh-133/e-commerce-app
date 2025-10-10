@@ -1,13 +1,14 @@
-from sqlalchemy import Column, Integer, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 class CartItem(Base):
     __tablename__ = "cart_items"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     cart_id = Column(Integer, ForeignKey("carts.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
+    name = Column(String)
     quantity = Column(Integer, default=1)
     price_at_time = Column(Float)  # optional
 

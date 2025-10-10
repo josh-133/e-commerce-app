@@ -29,6 +29,7 @@ class CartsRepository:
     def add_item(self, cart: Cart, item: CartItemSchema) -> CartItem:
         cart_item = CartItem(
             cart_id=cart.id,
+            name=item.name,
             product_id=item.product_id,
             quantity=item.quantity,
             price_at_time=item.price_at_time

@@ -17,7 +17,7 @@ import { Cart } from '../../models/cart.model';
 })
 export class ProductsComponent implements OnInit {
   products: Product[] = [];
-  cart!: Cart;
+  cart: Cart | null = null;
 
   constructor(
     private readonly productsService: ProductsService,
@@ -33,9 +33,17 @@ export class ProductsComponent implements OnInit {
       error: (err) => console.error('Error fetching products:', err)
     });
 
-    this.cartService.getCart().subscribe(cart => this.cart = cart)
+    this.cartService.cart$.subscribe({
+      next: (cart) => {
+        this.cart = cart
+      },
+      error: (err) => console.error("Error fetching cart", err)
+    })
     console.log(this.cart);
-    
+  
+    if (!this.cartService.getCartValue()) {
+      this.cartService.getCart().subscribe();
+    }
   }
 
   addToCart(product: Product) {
@@ -44,16 +52,25 @@ export class ProductsComponent implements OnInit {
       return;
     }
 
+    console.warn(product);
+
     const item: CartItem = {
-      id: 0,
+      name: product.name,
       cart_id: this.cart.id,
       product_id: product.id,
       quantity: 1,
       price_at_time: product.price,
     }
 
-    this.cartService.addToCart(this.cart.id, item).subscribe(item => {
-      this.cart.cart_items.push(item);
+    this.cartService.addToCart(this.cart.id, item).subscribe({
+      next: (newItem) => {
+        const updatedCart = {
+          ...this.cart!,
+          cart_items: [...(this.cart?.cart_items ?? []), newItem]
+        };
+        this.cartService['cart'].next(updatedCart);
+      },
+      error: (err) => console.error("Error adding to cart:", err)
     });
   }
 }

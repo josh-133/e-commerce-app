@@ -35,21 +35,23 @@ export class CartComponent implements OnInit {
     return item.price_at_time * item.quantity;
   }
 
-  // removeItem(itemId: number): void {
-  //   if (!this.cart) return;
+  removeItem(itemId: number): void {
+    if (!this.cart) return;
 
-  //   this.cartService.removeItem(itemId).subscribe({
-  //     next: (updatedCart: Cart) => this.cart = updatedCart,
-  //     error: (err) => console.error('Error removing item:', err)
-  //   });
-  // }
+    this.cartService.removeItem(this.cart.id, itemId).subscribe({
+      next: () => {
+        this.cart!.cart_items = this.cart!.cart_items.filter(item => item.id != itemId);
+      },
+      error: (err) => console.error('Error removing item:', err)
+    });
+  }
 
-  // updateQuantity(item: CartItem, newQuantity: number): void {
-  //   if (!this.cart) return;
+    // updateQuantity(item: CartItem, newQuantity: number): void {
+    //   if (!this.cart) return;
 
-  //   this.cartService.updateItem(item.id, { quantity: newQuantity }).subscribe({
-  //     next: (updatedCart: Cart) => this.cart = updatedCart,
-  //     error: (err) => console.error('Error updating quantity:', err)
-  //   });
-  // }
+    //   this.cartService.updateItem(item.id, { quantity: newQuantity }).subscribe({
+    //     next: (updatedCart: Cart) => this.cart = updatedCart,
+    //     error: (err) => console.error('Error updating quantity:', err)
+    //   });
+    // }
 }

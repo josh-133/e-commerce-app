@@ -45,7 +45,7 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.loginForm.value;
     this.authService.login(email, password).subscribe({
       next: (response: any) => {
-        const token = response.token;
+        const token = response.access_token;
         this.authService.saveUser(email, token);
         console.log('Login successful:', token);
         this.router.navigate(['/products'])

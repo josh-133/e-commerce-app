@@ -1,79 +1,107 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.cart import CartResponse, CartCreate, CartItem as CartItemSchema
+from app.schemas.cart import CartResponse, CartCreate, CartItem as CartItemSchema, CartUpdate
 from app.models.cart_item import CartItem
 from app.repositories.cart_repository import CartsRepository
 from app.dependencies.auth_dependencies import get_current_user
 from app.models.user import User
+from app.kafka.producer import producer
+import json
 
 router = APIRouter(prefix="/cart", tags=["Cart"])
 
-# Create empty cart
+# ------------------------
+# Create cart for current user
+# ------------------------
 @router.post("/", response_model=CartResponse)
-def create_cart(cart_create: CartCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_cart(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     repo = CartsRepository(db)
-    cart = repo.create_cart(user_id=cart_create.user_id)
-    if cart.user_id != current_user.id:  # enforce ownership
-        raise HTTPException(status_code=403, detail="Not authorized")
+    cart = repo.create_cart(user_id=current_user.id)
     return cart
 
+# ------------------------
+# Get all carts (admin only)
+# ------------------------
 @router.get("/", response_model=list[CartResponse])
-def get_cart(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_all_carts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
     repo = CartsRepository(db)
     carts = repo.get_all_carts()
-    if not carts:
-        raise HTTPException(status_code=404, detail="No carts were found")
-    if current_user.role != "admin":  # enforce ownership
-        raise HTTPException(status_code=403, detail="Not authorized")
     return carts
 
-
-@router.get("/{cart_id}", response_model=CartResponse)
-def get_cart(cart_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    repo = CartsRepository(db)
-    cart = repo.get_cart(cart_id)
-    if not cart:
-        raise HTTPException(status_code=404, detail="No carts were found")
-    if cart.user_id != current_user.id:  # enforce ownership
-        raise HTTPException(status_code=403, detail="Not authorized")
-    return cart
-
+# ------------------------
+# Get current user's cart
+# ------------------------
 @router.get("/current", response_model=CartResponse)
 def get_current_cart(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     repo = CartsRepository(db)
     cart = repo.get_by_user_id(current_user.id)
     if not cart:
-        # optionally create a cart if one doesn't exist
         cart = repo.create_cart(current_user.id)
     return cart
 
+# ------------------------
 # Add item to cart
-@router.post("/{cart_id}/items", response_model=CartItemSchema)
-def add_item_to_cart(cart_id: int, item: CartItemSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+# ------------------------
+@router.post("/current/items", response_model=CartItemSchema)
+def add_item_to_cart(item: CartItemSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     repo = CartsRepository(db)
-    cart = repo.get_cart(cart_id)
+    cart = repo.get_by_user_id(current_user.id)
     if not cart:
-        raise HTTPException(status_code=404, detail="Cart not found")
+        cart = repo.create_cart(current_user.id)
     cart_item = repo.add_item(cart, item)
+    # publish Kafka event
+    producer.send("cart_item_added", json.dumps({
+        "cart_id": cart.id,
+        "product_id": cart_item.product_id,
+        "quantity": cart_item.quantity,
+        "user_id": current_user.id
+    }).encode("utf-8"))
     return cart_item
 
+# ------------------------
 # Remove item from cart
-@router.delete("/{cart_id}/items/{item_id}")
-def remove_item_from_cart(cart_id: int, item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+# ------------------------
+@router.delete("/current/items/{item_id}", response_model=CartResponse)
+def remove_item_from_cart(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     repo = CartsRepository(db)
-    cart_item = db.query(CartItem).filter(CartItem.id == item_id, CartItem.cart_id == cart_id).first()
+    cart = repo.get_by_user_id(current_user.id)
+    if not cart:
+        raise HTTPException(status_code=404, detail="Cart not found")
+    cart_item = db.query(CartItem).filter(CartItem.id == item_id, CartItem.cart_id == cart.id).first()
     if not cart_item:
         raise HTTPException(status_code=404, detail="Cart item not found")
     repo.remove_item(cart_item)
-    return {"detail": "Item removed"}
+    # publish Kafka event
+    producer.send("cart_item_removed", json.dumps({
+        "cart_id": cart.id,
+        "product_id": cart_item.product_id,
+        "quantity": cart_item.quantity,
+        "user_id": current_user.id
+    }).encode("utf-8"))
+    updated_cart = repo.get_by_user_id(current_user.id)
+    return updated_cart
 
+# ------------------------
 # Update item quantity
-@router.put("/{cart_id}/items/{item_id}", response_model=CartItemSchema)
-def update_cart_item(cart_id: int, item_id: int, quantity: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+# ------------------------
+@router.put("/current/items/{item_id}", response_model=CartItemSchema)
+def update_cart_item(item_id: int, item_update: CartUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     repo = CartsRepository(db)
-    cart_item = db.query(CartItem).filter(CartItem.id == item_id, CartItem.cart_id == cart_id).first()
+    cart = repo.get_by_user_id(current_user.id)
+    if not cart:
+        raise HTTPException(status_code=404, detail="Cart not found")
+    cart_item = db.query(CartItem).filter(CartItem.id == item_id, CartItem.cart_id == cart.id).first()
     if not cart_item:
         raise HTTPException(status_code=404, detail="Cart item not found")
-    updated_item = repo.update_item(cart_item, quantity)
+    updated_item = repo.update_item(cart_item, item_update.quantity)
+    # publish Kafka event
+    producer.send("cart_item_updated", json.dumps({
+        "cart_id": cart.id,
+        "product_id": updated_item.product_id,
+        "quantity": updated_item.quantity,
+        "user_id": current_user.id
+    }).encode("utf-8"))
     return updated_item
