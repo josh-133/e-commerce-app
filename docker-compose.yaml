@@ -1,6 +1,16 @@
-version: '3.8'
-
 services:
+  backend:
+    build: backend
+    container_name: fastapi
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - postgres
+    environment:
+      MONGO_URI: "postgresql://user:password@postgres:5432/ecommerce_db"
+      KAFKA_BROKER: "localhost:9092"
+
   kafka:
     image: confluentinc/cp-kafka:7.8.5
     container_name: kafka
@@ -27,5 +37,20 @@ services:
     volumes:
       - kafka-kraft:/var/lib/kafka/data
 
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecommerce_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+
 volumes:
   kafka-kraft:
+  postgres-data:

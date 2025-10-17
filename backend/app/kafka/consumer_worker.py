@@ -1,6 +1,5 @@
 import threading
 import json
-import time
 from confluent_kafka import Consumer, KafkaError
 
 class KafkaConsumerWorker(threading.Thread):

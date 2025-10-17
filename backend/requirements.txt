@@ -5,6 +5,7 @@ uvicorn[standard]==0.30.3 # ASGI server
 # --- Database ---
 sqlalchemy==2.0.32        # ORM (if using SQL-based DB)
 databases[postgresql]==0.9.0  # Async DB layer (if Postgres)
+psycopg2-binary==2.9.7
 
 # --- Kafka ---
 aiokafka==0.11.0          # Async Kafka client
