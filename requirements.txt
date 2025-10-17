@@ -8,6 +8,7 @@ databases[postgresql]==0.9.0  # Async DB layer (if Postgres)
 
 # --- Kafka ---
 aiokafka==0.11.0          # Async Kafka client
+confluent-kafka
 
 # --- Pydantic / Validation ---
 pydantic==2.9.2           # Data validation & schemas
