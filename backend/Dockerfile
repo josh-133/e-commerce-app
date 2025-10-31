@@ -16,6 +16,8 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir bcrypt==4.1.2 passlib[bcrypt]==1.7.4
 
 # Copy the backend code
 COPY . .

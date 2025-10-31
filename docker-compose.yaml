@@ -1,15 +1,37 @@
 services:
+  frontend-dev:
+    build: 
+      context: frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend-dev
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  # frontend:
+  #   build: frontend
+  #   container_name: frontend
+  #   ports:
+  #     - "4200:80"
+  #   depends_on:
+  #     - backend
+
   backend:
     build: backend
-    container_name: fastapi
     ports:
       - "8080:8080"
     depends_on:
-      - kafka
-      - postgres
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_started
     environment:
       MONGO_URI: "postgresql://user:password@postgres:5432/ecommerce_db"
-      KAFKA_BROKER: "localhost:9092"
+      KAFKA_BROKER: "kafka:9092"
 
   kafka:
     image: confluentinc/cp-kafka:7.8.5
@@ -28,14 +50,21 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
       KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     
     volumes:
       - kafka-kraft:/var/lib/kafka/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server kafka:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
   postgres:
     image: postgres:15

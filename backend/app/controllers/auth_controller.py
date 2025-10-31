@@ -11,17 +11,22 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    repo = UsersRepository(db)
-    if repo.get_by_email(user.email):
-        raise HTTPException(status_code=400, detail="User already exists")
-    hashed = hash_password(user.password)
-    db_user = User(
-        email=user.email, 
-        hashed_password=hashed, 
-        role="user"
-        )
-    new_user = repo.create_user(db_user)
-    return {"id": new_user.id, "email": new_user.email}
+    try:
+        repo = UsersRepository(db)
+        if repo.get_by_email(user.email):
+            raise HTTPException(status_code=400, detail="User already exists")
+        hashed = hash_password(user.password[:72])
+        db_user = User(
+            email=user.email, 
+            hashed_password=hashed, 
+            role="admin"
+            )
+        new_user = repo.create_user(db_user)
+        return {"id": new_user.id, "email": new_user.email}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):

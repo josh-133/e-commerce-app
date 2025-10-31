@@ -3,8 +3,10 @@
     <p class="products-subtitle">
         Browse our latest products and find what you love. Free shipping on orders over $50!
     </p>
+    <div class="add-product-link" style="margin: 16px 0;">
+        <a routerLink="/admin/products/new" mat-button color="accent">Add New Product</a>
+    </div>
     <div class="products-container">
-
         <mat-card *ngFor="let product of products" class="product-card">
         <img mat-card-image [src]="product.image_url" alt="{{ product.name }}">
         <mat-card-header>

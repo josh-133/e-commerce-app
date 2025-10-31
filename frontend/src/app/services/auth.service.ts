@@ -20,11 +20,11 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post('http://localhost:8000/auth/login', { email, password });
+    return this.http.post('api/auth/login', { email, password });
   }
 
   register(email: string, password: string): Observable<any> {
-    return this.http.post('http://localhost:8000/auth/register', { email, password });
+    return this.http.post('api/auth/register', { email, password });
   }
 
   isLoggedIn(): boolean {

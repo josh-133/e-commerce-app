@@ -9,7 +9,6 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class CartService {
-  private apiUrl = 'http://localhost:8000/cart';
   private cart = new BehaviorSubject<Cart | null>(null);
   cart$ = this.cart.asObservable();
 
@@ -21,17 +20,17 @@ export class CartService {
   }
 
   getCarts(): Observable<Cart[]> {
-    return this.http.get<Cart[]>(this.apiUrl);
+    return this.http.get<Cart[]>(`api/cart`);
   }
 
   getCart(): Observable<Cart> {
 
-    return this.http.get<Cart>(`${this.apiUrl}/current`,  { headers: this.getAuthHeaders() })
+    return this.http.get<Cart>(`api/cart/current`,  { headers: this.getAuthHeaders() })
     .pipe(tap(cart => this.cart.next(cart)));
   }
 
   addToCart(cartId: number, item: CartItem): Observable<CartItem> {
-    return this.http.post<CartItem>(`${this.apiUrl}/current/items`, item, { headers: this.getAuthHeaders() })
+    return this.http.post<CartItem>(`api/cart/current/items`, item, { headers: this.getAuthHeaders() })
     .pipe(
       tap(() => {
         this.getCart().subscribe();
@@ -40,7 +39,7 @@ export class CartService {
   }
 
   removeItem(cartId: number, itemId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/current/items/${itemId}`, { headers: this.getAuthHeaders() })
+    return this.http.delete(`api/cart/current/items/${itemId}`, { headers: this.getAuthHeaders() })
     .pipe(
       tap(() => {
           this.getCart().subscribe();
