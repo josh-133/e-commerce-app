@@ -16,6 +16,14 @@
         <mat-card-content>
             <p class="description">{{ product.description }}</p>
             <p class="price">${{ product.price }}</p>
+            <p [ngClass]="{
+                'in-stock': product.stock > 10,
+                'low-stock': product.stock > 0 && product.stock <= 10,
+                'out-of-stock': product.stock === 0
+            }"
+            >
+                Stock: {{ product.stock }}
+            </p>
         </mat-card-content>
         <mat-card-actions>
             <button mat-raised-button color="primary" class="add-to-cart-btn" (click)="addToCart(product)">Add to Cart</button>

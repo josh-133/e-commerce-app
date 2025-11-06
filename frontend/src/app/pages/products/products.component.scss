@@ -54,6 +54,25 @@
       color: #1976d2;
     }
 
+    .stock {
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    .in-stock {
+      color: #2e7d32; /* green */
+    }
+    
+    .low-stock {
+      color: #f9a825; /* amber/yellow */
+    }
+    
+    .out-of-stock {
+      color: #c62828; /* red */
+      font-weight: 600;
+    }
+
     .add-to-cart-btn {
       width: 100%;
       font-weight: bold;

@@ -8,6 +8,7 @@ import { Cart } from '../../models/cart.model';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-product',
@@ -34,6 +35,7 @@ export class CreateProductComponent {
 
   constructor(
     private readonly productsService: ProductsService,
+    private readonly router: Router,
     private fb: FormBuilder,
   ) {
     this.productForm = this.fb.group({
@@ -55,6 +57,7 @@ export class CreateProductComponent {
       next: (res) => {
         this.successMessage = `Product "${res.name} created successfully!"`
         this.productForm.reset();
+        this.router.navigate(['/products'])
       },
       error: (err) => {
         this.errorMessage = "Failed to create product."
