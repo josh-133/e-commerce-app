@@ -38,6 +38,10 @@ export class CartService {
     );
   }
 
+  updateCartItem(itemId: number, quantity: number) {
+    return this.http.put(`/api/cart/current/items/${itemId}`, { quantity });
+  }
+
   removeItem(cartId: number, itemId: number): Observable<any> {
     return this.http.delete(`api/cart/current/items/${itemId}`, { headers: this.getAuthHeaders() })
     .pipe(

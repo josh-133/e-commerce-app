@@ -19,5 +19,10 @@ class ProductResponse(ProductBase):
     class Config:
         orm_mode = True
 
-class ProductUpdate(ProductBase):
-    pass
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    category: Optional[str] = None
+    image_url: Optional[str] = None
+    stock: Optional[int] = None

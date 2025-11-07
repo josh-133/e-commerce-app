@@ -74,4 +74,20 @@ export class ProductsComponent implements OnInit {
       error: (err) => console.error("Error adding to cart:", err)
     });
   }
+
+  deleteProduct(id: number) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+  
+    this.productsService.deleteProduct(id).subscribe({
+      next: () => {
+        // Remove the deleted product from the local array so UI updates immediately
+        this.products = this.products.filter(p => p.id !== id);
+        console.log(`Product ${id} deleted`);
+      },
+      error: (err: Error) => {
+        console.error('Failed to delete product:', err);
+        alert('Failed to delete product.');
+      }
+    });
+  }
 }

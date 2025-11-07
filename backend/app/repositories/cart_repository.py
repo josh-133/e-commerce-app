@@ -25,19 +25,34 @@ class CartsRepository:
     def get_by_user_id(self, user_id: int) -> Cart | None:
         return self.db.query(Cart).filter(Cart.user_id == user_id).first()
     
-    # Add item to cart
+   # Add item to cart
     def add_item(self, cart: Cart, item: CartItemSchema) -> CartItem:
-        cart_item = CartItem(
-            cart_id=cart.id,
-            name=item.name,
-            product_id=item.product_id,
-            quantity=item.quantity,
-            price_at_time=item.price_at_time
+        # Check if the item is already in the cart
+        cart_item = (
+            self.db.query(CartItem)
+            .filter(CartItem.cart_id == cart.id, CartItem.product_id == item.product_id)
+            .first()
         )
-        self.db.add(cart_item)
-        self.db.commit()
-        self.db.refresh(cart_item)
-        return cart_item
+
+        if cart_item:
+            # If it exists, increase the quantity
+            cart_item.quantity += item.quantity
+            self.db.commit()
+            self.db.refresh(cart_item)
+            return cart_item
+        else:
+            # If not, create a new CartItem
+            cart_item = CartItem(
+                cart_id=cart.id,
+                name=item.name,
+                product_id=item.product_id,
+                quantity=item.quantity,
+                price_at_time=item.price_at_time
+            )
+            self.db.add(cart_item)
+            self.db.commit()
+            self.db.refresh(cart_item)
+            return cart_item
 
     # Remove item
     def remove_item(self, cart_item: CartItem):

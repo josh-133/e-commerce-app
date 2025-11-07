@@ -41,7 +41,7 @@ def update_product(product_id: int, product_update: ProductUpdate, db: Session =
     updated_product = repo.update_product(product_id, product_update)
     if updated_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    if update_product.user_id != current_user.id and current_user.role != "admin":
+    if updated_product.user_id != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not authorized")
     return updated_product
 
@@ -51,7 +51,15 @@ def delete_product(product_id: int, db: Session = Depends(get_db), current_user:
     product = repo.get_product(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    if update_product.user_id != current_user.id and current_user.role != "admin":
+
+    # Check for cart items
+    cart_item_exists = db.query(CartItem).filter(CartItem.product_id == product.id).first()
+    if cart_item_exists:
+        raise HTTPException(
+            status_code=400, 
+            detail="Cannot delete product. It is still in users' carts."
+        )
+    if product.user_id != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not authorized")
     repo.delete_product(product)
     return f"Product with an id of {product_id} was successfully deleted"

@@ -1,0 +1,13 @@
+<h2>Edit Product</h2>
+
+<!-- Show the form only when product data is loaded -->
+<app-product-form
+  *ngIf="product"
+  [product]="product"
+  (formSubmit)="onUpdate($event)"
+></app-product-form>
+
+<!-- Optional loading state -->
+<div *ngIf="!product">
+  <p>Loading product...</p>
+</div>
