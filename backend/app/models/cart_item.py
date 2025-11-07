@@ -7,6 +7,7 @@ class CartItem(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     cart_id = Column(Integer, ForeignKey("carts.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     name = Column(String)
     quantity = Column(Integer, default=1)
