@@ -5,6 +5,7 @@ from app.schemas.cart import CartResponse, CartItem as CartItemSchema, CartUpdat
 from app.models.user import User
 from app.dependencies.auth_dependencies import get_current_user
 from app.kafka.producer import producer, delivery_report
+from app.repositories.cart_repository import CartsRepository
 import datetime, json, uuid
 
 router = APIRouter(prefix="/cart", tags=["Cart"])
@@ -80,6 +81,15 @@ def remove_item_from_cart(item_id: int, current_user: User = Depends(get_current
     )
     producer.flush()
     return {"status": "event emitted", "product_id": item_id}
+
+@router.delete("/current/{cart_id}/clear")
+def clear_cart(cart_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    repo = CartsRepository(db)
+    cart = repo.get_by_user_id(current_user.id)
+    if not cart or cart.id != cart_id:
+        raise HTTPException(status_code=404, detail="Cart not found")
+    repo.clear_items(cart)
+    return {"detail": f"Cart {cart_id} cleared"}
 
 
 # ------------------------

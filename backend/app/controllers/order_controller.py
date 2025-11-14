@@ -6,46 +6,46 @@ from app.models.order import Order
 from app.schemas.order import OrderCreate, OrderUpdate, OrderResponse
 from app.dependencies.auth_dependencies import get_current_user
 from app.models.user import User
-from app.kafka.producer import send_event
-import asyncio
+from app.kafka.producer import producer, delivery_report
+import uuid
+import datetime
+import json
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 # ------------------------
 # Create Order
 # ------------------------
-@router.post("/", response_model=OrderResponse)
+@router.post("", response_model=dict)
 def create_order(
-    order: OrderCreate, 
-    db: Session = Depends(get_db), 
+    order: OrderCreate,
     current_user: User = Depends(get_current_user)
 ):
-    repo = OrdersRepository(db)
-    
-    # Use current_user.id instead of trusting client input
-    db_order = Order(**order.dict(exclude={"user_id"}), user_id=current_user.id)
-    
-    order_created = repo.create_order(db_order)
+    event = {
+        "event_id": str(uuid.uuid4()),
+        "service": "order_service",
+        "event_type": "order.created",
+        "version": 1,
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "data": {
+            "user_id": current_user.id,
+            **order.dict()
+        }
+    }
 
-    # Kafka event
-    asyncio.create_task(
-        send_event(
-            "orders",
-            {
-                "action": "created",
-                "order_id": order_created.id,
-                "user_id": order_created.user_id,
-                "total": getattr(order_created, "total", None),
-                "items": getattr(order_created, "items", [])
-            }
-        )
+    producer.produce(
+        topic="order_events",
+        value=json.dumps(event).encode("utf-8"),
+        callback=delivery_report
     )
-    return order_created
+    producer.flush()
+
+    return {"status": "ORDER_EVENT_SENT"}
 
 # ------------------------
 # Get All Orders (Admin Only)
 # ------------------------
-@router.get("/", response_model=list[OrderResponse])
+@router.get("", response_model=list[OrderResponse])
 def get_orders(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Not authorized")
@@ -69,54 +69,58 @@ def get_order(order_id: int, db: Session = Depends(get_db), current_user: User =
 # Update Order
 # ------------------------
 @router.put("/{order_id}", response_model=OrderResponse)
-def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    repo = OrdersRepository(db)
-    updated_order = repo.update_order(order_id, order_update)
-    if not updated_order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if updated_order.user_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized")
-    
-    # Kafka event
-    asyncio.create_task(
-        send_event(
-            "orders",
-            {
-                "action": "updated",
-                "order_id": updated_order.id,
-                "user_id": updated_order.user_id,
-                "total": getattr(updated_order, "total", None),
-                "items": getattr(updated_order, "items", [])
-            }
-        )
-    )
+def update_order(
+    order_id: int,
+    order_update: OrderUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    event = {
+        "event_id": str(uuid.uuid4()),
+        "service": "order_service",
+        "event_type": "order.updated",
+        "version": 1,
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "data": {
+            "order_id": order_id,
+            "user_id": current_user.id,
+            **order_update.dict()
+        }
+    }
 
-    return updated_order
+    producer.produce(
+        topic="order_events",
+        value=json.dumps(event).encode("utf-8"),
+        callback=delivery_report
+    )
+    producer.flush()
+
+    return order_update
 
 # ------------------------
 # Delete Order
 # ------------------------
 @router.delete("/{order_id}")
-def delete_order(order_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    repo = OrdersRepository(db)
-    order = repo.get_order(order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    if order.user_id != current_user.id and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Not authorized")
-    
-    repo.delete_order(order)
+def delete_order(
+    order_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    event = {
+        "event_id": str(uuid.uuid4()),
+        "service": "order_service",
+        "event_type": "order.deleted",
+        "version": 1,
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "data": {
+            "order_id": order_id,
+            "user_id": current_user.id
+        }
+    }
 
-    # Kafka event
-    asyncio.create_task(
-        send_event(
-            "orders",
-            {
-                "action": "deleted",
-                "order_id": order.id,
-                "user_id": order.user_id
-            }
-        )
+    producer.produce(
+        topic="order_events",
+        value=json.dumps(event).encode("utf-8"),
+        callback=delivery_report
     )
+    producer.flush()
 
-    return {"detail": f"Order with id {order_id} successfully deleted"}
+    return {"detail": f"Order {order_id} delete event sent"}

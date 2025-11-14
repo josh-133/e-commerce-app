@@ -9,7 +9,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class CartService {
-  private cart = new BehaviorSubject<Cart | null>(null);
+  cart = new BehaviorSubject<Cart | null>(null);
   cart$ = this.cart.asObservable();
 
   constructor(private http: HttpClient, private authService: AuthService) {}
@@ -52,12 +52,13 @@ export class CartService {
     );
   }
 
+  clearCart(cartId: number): Observable<any> {
+    return this.http.delete(`/api/cart/current/${cartId}/clear`, { headers: this.getAuthHeaders() });
+  }
+
   getCartValue(): Cart | null {
     return this.cart.value;
   }
 
-  clearCart(): void {
-    this.cart.next(null);
-  }
 
 }

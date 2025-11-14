@@ -80,3 +80,8 @@ class CartsRepository:
         self.db.delete(cart)
         self.db.commit()
         return cart
+    
+    def clear_items(self, cart: Cart):
+        # Delete all cart items for this cart
+        self.db.query(CartItem).filter(CartItem.cart_id == cart.id).delete(synchronize_session=False)
+        self.db.commit()

@@ -6,6 +6,8 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { OrderService } from '../../services/orders.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-cart',
@@ -18,7 +20,11 @@ export class CartComponent implements OnInit {
 
   cart!: Cart;
 
-  constructor(private readonly cartService: CartService) {}
+  constructor(
+    private readonly orderService: OrderService, 
+    private readonly cartService: CartService,
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadCart();
@@ -46,12 +52,27 @@ export class CartComponent implements OnInit {
     });
   }
 
-    // updateQuantity(item: CartItem, newQuantity: number): void {
-    //   if (!this.cart) return;
+  orderNow() {
+    if (!this.cart || !this.cart.cart_items?.length) {
+      alert('Your cart is empty!');
+      return;
+    }
 
-    //   this.cartService.updateItem(item.id, { quantity: newQuantity }).subscribe({
-    //     next: (updatedCart: Cart) => this.cart = updatedCart,
-    //     error: (err) => console.error('Error updating quantity:', err)
-    //   });
-    // }
+    this.orderService.createOrder(this.cart.id, this.cart.cart_items).subscribe({
+      next: (order) => {
+        alert('Order placed successfully!');
+        this.cartService.clearCart(this.cart.id).subscribe({
+          next: () => {
+            // Also update your local cart observable so UI reflects empty cart
+            this.cartService.cart.next({ ...this.cartService.cart.value!, cart_items: [] });
+          }
+        });
+        this.router.navigate(['/products']);
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Failed to place order.');
+      }
+    });
+  }
 }

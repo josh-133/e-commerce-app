@@ -38,4 +38,10 @@
         <tr mat-header-row *matHeaderRowDef="['productName', 'quantity', 'price', 'remove']"></tr>
         <tr mat-row *matRowDef="let row; columns: ['productName', 'quantity', 'price', 'remove'];"></tr>
     </table>
+
+    <div class="cart-footer">
+        <button mat-raised-button color="primary" (click)="orderNow()">
+          Order Now
+        </button>
+    </div>
 </div>

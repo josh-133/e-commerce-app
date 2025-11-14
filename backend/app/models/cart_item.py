@@ -7,6 +7,7 @@ class CartItem(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     cart_id = Column(Integer, ForeignKey("carts.id"))
+    order_id = Column(Integer, ForeignKey("orders.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     name = Column(String)
@@ -14,3 +15,4 @@ class CartItem(Base):
     price_at_time = Column(Float)  # optional
 
     cart = relationship("Cart", back_populates="cart_items")
+    order = relationship("Order", back_populates="cart_items")

@@ -26,6 +26,12 @@ class OrdersRepository:
         self.db.commit()
         self.db.refresh(order)
         return order
+
+    def update_status(order: Order, status: str):
+        order.status = status
+        self.db.commit()
+        self.db.refresh(order)
+        return order
     
     def delete_order(self, order: Order):
         self.db.delete(order)

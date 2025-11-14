@@ -3,8 +3,10 @@ import json
 import logging
 from confluent_kafka import Consumer, KafkaError
 from app.repositories.cart_repository import CartsRepository
+from app.repositories.order_repository import OrdersRepository
 from app.models.cart import CartItem
 from app.database import SessionLocal
+from app.models.order import Order
 
 
 logging.basicConfig(level=logging.INFO)
@@ -32,6 +34,10 @@ class KafkaConsumerWorker(threading.Thread):
             "cart.item_added": self.handle_item_added,
             "cart.item_removed": self.handle_item_removed,
             "cart_item_updated": self.handle_item_updated,
+
+            "order.created": self.handle_order_created,
+            "order.updated": self.handle_order_updated,
+            "order.deleted": self.handle_order_deleted,
         }
 
     def handle_item_added(self, data):
@@ -96,6 +102,77 @@ class KafkaConsumerWorker(threading.Thread):
             logger.info(f"[Updated] cart_id={cart.id}, product_id={updated_item.product_id}, qty={updated_item.quantity}, user_id={data['user_id']}")
         except Exception as e:
             logger.error(f"Failed to handle cart.item_updated: {e}")
+        finally:
+            db.close()
+    
+    def handle_order_created(self, data):
+        db = SessionLocal()
+        try:
+            repo = OrdersRepository(db)
+            
+            # Build CartItem models from the event
+            cart_items_data = data["cart_items"]
+            cart_items = [
+                CartItem(
+                    product_id=item["product_id"],
+                    name=item["name"],
+                    quantity=item["quantity"],
+                    price_at_time=item.get("price_at_time", 0)
+                )
+                for item in cart_items_data
+            ]
+
+            # ✔ calculate total automatically
+            total = sum(item.quantity * item.price_at_time for item in cart_items)
+
+            new_order = Order(
+                user_id=data["user_id"],
+                cart_items=cart_items,
+                total_price=total,
+            )
+            order = repo.create_order(new_order)
+
+            logger.info(
+                f"[Order Created] order_id={order.id}, user_id={data['user_id']}, cart_items={len(cart_items)}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to handle order.created: {e}")
+        finally:
+            db.close()
+
+    def handle_order_updated(self, data):
+        db = SessionLocal()
+        try:
+            repo = OrdersRepository(db)
+            order = repo.get_by_id(data["order_id"])
+
+            if not order:
+                logger.warning(f"Order not found: {data['order_id']}")
+                return
+
+            updated = repo.update_status(order, data["status"])
+
+            logger.info(f"[Order Updated] order_id={order.id}, status={updated.status}")
+        except Exception as e:
+            logger.error(f"Failed to handle order.updated: {e}")
+        finally:
+            db.close()
+    
+    def handle_order_deleted(self, data):
+        db = SessionLocal()
+        try:
+            repo = OrdersRepository(db)
+            order = repo.get_by_id(data["order_id"])
+
+            if not order:
+                logger.warning(f"Order not found: {data['order_id']}")
+                return
+
+            repo.delete_order(order)
+
+            logger.info(f"[Order Deleted] order_id={data['order_id']}")
+        except Exception as e:
+            logger.error(f"Failed to handle order.deleted: {e}")
         finally:
             db.close()
 

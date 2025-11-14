@@ -36,7 +36,7 @@ def start_kafka_consumer():
     kafka_broker = os.getenv("KAFKA_BROKER", "kafka:9092")
     kafka_worker = KafkaConsumerWorker(
         bootstrap_servers=kafka_broker,
-        topics=["cart_events"],
+        topics=["cart_events", "order_events"],
     )
     kafka_worker.start()
 
