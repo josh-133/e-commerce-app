@@ -50,8 +50,18 @@ export class RegisterComponent implements OnInit {
     const { email, password } = this.registerForm.value;
     this.authService.register(email, password).subscribe({
       next: (res) => {
+        // Auto-login immediately after registration
+        this.authService.login(email, password).subscribe({
+          next: (res) => {
+            const token = res.access_token;
+            this.authService.saveUser(email, token);
+            this.router.navigate(['/products']);
+          },
+          error: (err) => {
+            console.error('Auto login failed:', err);
+          }
+        });
         console.log('Registration successful:', res);
-        this.router.navigate(['/products']);
       },
       error: (err) => console.error('Registration error:', err)
     });
