@@ -1,6 +1,7 @@
 import threading
 import json
 import logging
+from fastapi import HTTPException
 from confluent_kafka import Consumer, KafkaError
 from app.repositories.cart_repository import CartsRepository
 from app.repositories.order_repository import OrdersRepository
@@ -50,7 +51,7 @@ class KafkaConsumerWorker(threading.Thread):
             cart_item_schema = CartItem(**data)
             cart_item = repo.add_item(cart, cart_item_schema)
             logger.info(f"[Added] cart_id={cart.id}, product_id={cart_item.product_id}, qty={cart_item.quantity}, user_id={data['user_id']}")
-        except Exception as e:
+        except HTTPException as e:
             logger.error(f"Failed to handle item_added event: {e}")
         finally:
             db.close()

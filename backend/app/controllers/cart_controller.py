@@ -32,10 +32,11 @@ def get_current_cart(db: Session = Depends(get_db), current_user: User = Depends
 # Add item to cart
 # ------------------------
 @router.post("/current/items", response_model=CartItemSchema)
-def add_item_to_cart(item: CartItemSchema, current_user: User = Depends(get_current_user)):
-    """
-    Instead of adding directly to the DB, we produce a Kafka event.
-    """
+def add_item_to_cart(item: CartItemSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    repo = CartsRepository(db)
+    repo.validate_stock(item) # raises HTTP Exception if invalid
+    
+    # Kafka event
     event = {
         "event_id": str(uuid.uuid4()),
         "service": "cart_service",
@@ -89,7 +90,8 @@ def clear_cart(cart_id: int, current_user: User = Depends(get_current_user), db:
     if not cart or cart.id != cart_id:
         raise HTTPException(status_code=404, detail="Cart not found")
     repo.clear_items(cart)
-    return {"detail": f"Cart {cart_id} cleared"}
+    db.refresh(cart)
+    return cart
 
 
 # ------------------------

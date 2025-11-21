@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { OrderService } from '../../services/orders.service';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-cart',
@@ -57,22 +58,22 @@ export class CartComponent implements OnInit {
       alert('Your cart is empty!');
       return;
     }
-
-    this.orderService.createOrder(this.cart.id, this.cart.cart_items).subscribe({
-      next: (order) => {
+  
+    this.orderService.createOrder(this.cart.id, this.cart.cart_items).pipe(
+      switchMap(() => this.cartService.clearCart(this.cart.id))
+    ).subscribe({
+      next: (clearedCart) => {
+        // Push empty cart to BehaviorSubject
+        this.cartService.cart.next(clearedCart);
         alert('Order placed successfully!');
-        this.cartService.clearCart(this.cart.id).subscribe({
-          next: () => {
-            // Also update your local cart observable so UI reflects empty cart
-            this.cartService.cart.next({ ...this.cartService.cart.value!, cart_items: [] });
-          }
-        });
         this.router.navigate(['/products']);
       },
       error: (err) => {
         console.error(err);
-        alert('Failed to place order.');
+        alert('Failed to place order or clear cart.');
       }
     });
+    this.cart.cart_items = []
+    console.warn(this.cart.cart_items);
   }
 }

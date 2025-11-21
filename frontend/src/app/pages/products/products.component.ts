@@ -53,8 +53,6 @@ export class ProductsComponent implements OnInit {
       return;
     }
 
-    console.warn(product);
-
     const item: CartItem = {
       name: product.name,
       cart_id: this.cart.id,
@@ -71,7 +69,9 @@ export class ProductsComponent implements OnInit {
         };
         this.cartService['cart'].next(updatedCart);
       },
-      error: (err) => console.error("Error adding to cart:", err)
+      error: (err) => {
+        alert(err.error?.detail || "Failed to add an item");
+      }
     });
   }
 
