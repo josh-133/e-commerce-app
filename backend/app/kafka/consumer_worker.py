@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from confluent_kafka import Consumer, KafkaError
 from app.repositories.cart_repository import CartsRepository
 from app.repositories.order_repository import OrdersRepository
+from app.schemas.cart import CartItem as CartItemSchema
 from app.models.cart import CartItem
 from app.database import SessionLocal
 from app.models.order import Order
@@ -43,16 +44,25 @@ class KafkaConsumerWorker(threading.Thread):
 
     def handle_item_added(self, data):
         db = SessionLocal()
+        repo = CartsRepository(db)
+        cart = repo.get_by_user_id(data['user_id'])
+        if not cart:
+            cart = repo.create_cart(data['user_id'])
+
+        db.refresh(cart)
+        logger.warning(f"[ADD_ITEM_HANDLER] Using cart_id={cart.id} for user={data['user_id']}")
+        
         try:
-            repo = CartsRepository(db)
-            cart = repo.get_by_user_id(data['user_id'])
-            if not cart:
-                cart = repo.create_cart(data['user_id'])
-            cart_item_schema = CartItem(**data)
+            cart_item_schema = CartItemSchema(
+                product_id=data["product_id"],
+                quantity=data["quantity"],
+                name=data["name"],
+                price_at_time=data["price_at_time"]
+            )
             cart_item = repo.add_item(cart, cart_item_schema)
             logger.info(f"[Added] cart_id={cart.id}, product_id={cart_item.product_id}, qty={cart_item.quantity}, user_id={data['user_id']}")
         except HTTPException as e:
-            logger.error(f"Failed to handle item_added event: {e}")
+            logger.exception("[ADD_ITEM_HANDLER] Unexpected error")            
         finally:
             db.close()
 

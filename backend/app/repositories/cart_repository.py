@@ -5,7 +5,6 @@ from app.models.cart_item import CartItem
 from app.models.product import Product
 from app.schemas.cart import CartItem as CartItemSchema
 
-import logging
 class CartsRepository:
 
     def __init__(self, db: Session):
@@ -120,6 +119,13 @@ class CartsRepository:
         return cart
     
     def clear_items(self, cart: Cart):
-        # Delete all cart items for this cart
-        self.db.query(CartItem).filter(CartItem.cart_id == cart.id).delete(synchronize_session=False)
+        result = (
+            self.db.query(CartItem)
+            .filter(CartItem.cart_id == cart.id)
+            .delete(synchronize_session=False)
+        )
+        print("ROWS DELETED:", result)
+
         self.db.commit()
+        self.db.expire_all()
+        return cart

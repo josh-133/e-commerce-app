@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.cart import CartResponse, CartItem as CartItemSchema, CartUpdate
 from app.models.user import User
+from app.models.cart import Cart
 from app.dependencies.auth_dependencies import get_current_user
 from app.kafka.producer import producer, delivery_report
 from app.repositories.cart_repository import CartsRepository
@@ -33,8 +34,8 @@ def get_current_cart(db: Session = Depends(get_db), current_user: User = Depends
 # ------------------------
 @router.post("/current/items", response_model=CartItemSchema)
 def add_item_to_cart(item: CartItemSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    repo = CartsRepository(db)
-    repo.validate_stock(item) # raises HTTP Exception if invalid
+    # repo = CartsRepository(db)
+    # repo.validate_stock(item) # raises HTTP Exception if invalid
     
     # Kafka event
     event = {
@@ -85,11 +86,19 @@ def remove_item_from_cart(item_id: int, current_user: User = Depends(get_current
 
 @router.delete("/current/{cart_id}/clear")
 def clear_cart(cart_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    repo = CartsRepository(db)
-    cart = repo.get_by_user_id(current_user.id)
-    if not cart or cart.id != cart_id:
+    cart = (
+        db.query(Cart)
+        .filter(Cart.id == cart_id, Cart.user_id == current_user.id)
+        .first()
+    )
+    if not cart:
         raise HTTPException(status_code=404, detail="Cart not found")
+
+    print(f"[CLEAR_CART] Clearing cart_id={cart.id}")
+
+    repo = CartsRepository(db)
     repo.clear_items(cart)
+
     db.refresh(cart)
     return cart
 
