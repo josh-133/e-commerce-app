@@ -1,0 +1,16 @@
+<mat-toolbar color="primary" class="navbar">
+  <span class="logo">MyShop</span>
+  <span class="spacer"></span>
+  <div class="nav-links">
+    <a mat-button routerLink="/products">Products</a>
+    <a mat-button routerLink="/cart">Cart</a>
+    <ng-container *ngIf="!isLoggedIn">
+      <a mat-button routerLink="/login">Login</a>
+      <a mat-button routerLink="/register">Register</a>
+    </ng-container>
+    <ng-container *ngIf="isLoggedIn">
+      <a mat-button>Welcome {{ username }}</a>
+      <a mat-button (click)="logout()">Logout</a>
+    </ng-container>
+  </div>
+</mat-toolbar>

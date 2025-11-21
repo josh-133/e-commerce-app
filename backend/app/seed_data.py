@@ -31,10 +31,10 @@ try:
 
     # --- Seed Products ---
     products = [
-        {"name": "Wireless Headphones", "description": "Over-ear, noise-cancelling", "price": 99.99, "image_url": "", "category": "Electronics", "stock": 50},
-        {"name": "Smartphone Stand", "description": "Adjustable desktop stand", "price": 14.95, "image_url": "", "category": "Electronics", "stock": 200},
-        {"name": "Yoga Mat", "description": "Eco-friendly non-slip mat", "price": 29.99, "image_url": "", "category": "Sports", "stock": 80},
-        {"name": "Coffee Mug", "description": "12oz ceramic mug", "price": 9.99, "image_url": "", "category": "Home & Kitchen", "stock": 100},
+        {"name": "Wireless Headphones", "description": "Over-ear, noise-cancelling", "price": 99.99, "image_url": "https://images.unsplash.com/photo-1657223143975-d29d7959a70f?q=80&w=1625&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "category": "Electronics", "stock": 50},
+        {"name": "Smartphone Stand", "description": "Adjustable desktop stand", "price": 14.95, "image_url": "https://images.unsplash.com/photo-1669255344177-dc55f537acc9?q=80&w=654&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "category": "Electronics", "stock": 200},
+        {"name": "Yoga Mat", "description": "Eco-friendly non-slip mat", "price": 29.99, "image_url": "https://plus.unsplash.com/premium_photo-1675155952889-abb299df1fe7?q=80&w=2058&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "category": "Sports", "stock": 80},
+        {"name": "Coffee Mug", "description": "12oz ceramic mug", "price": 9.99, "image_url": "https://images.unsplash.com/photo-1616241673111-508b4662c707?q=80&w=1004&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "category": "Home & Kitchen", "stock": 100},
     ]
 
     product_objects = []

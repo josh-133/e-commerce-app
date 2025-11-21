@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -26,7 +27,7 @@ import { CommonModule } from '@angular/common';
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
 
-  constructor(private fb: FormBuilder, private authService: AuthService) {}
+  constructor(private fb: FormBuilder, private authService: AuthService, private readonly router: Router) {}
 
   ngOnInit() {
     this.registerForm = this.fb.group({
@@ -49,8 +50,18 @@ export class RegisterComponent implements OnInit {
     const { email, password } = this.registerForm.value;
     this.authService.register(email, password).subscribe({
       next: (res) => {
+        // Auto-login immediately after registration
+        this.authService.login(email, password).subscribe({
+          next: (res) => {
+            const token = res.access_token;
+            this.authService.saveUser(email, token);
+            this.router.navigate(['/products']);
+          },
+          error: (err) => {
+            console.error('Auto login failed:', err);
+          }
+        });
         console.log('Registration successful:', res);
-        // Optionally redirect to login
       },
       error: (err) => console.error('Registration error:', err)
     });

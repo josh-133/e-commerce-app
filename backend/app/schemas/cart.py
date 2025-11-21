@@ -5,7 +5,9 @@ from app.enums import CartStatus
 
 # Each product in the cart
 class CartItem(BaseModel):
+    id: Optional[int] = None
     product_id: int
+    name: str
     quantity: int
     price_at_time: Optional[float] = None  # Optional, stores price at time of adding
 
